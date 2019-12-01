@@ -5,16 +5,15 @@
 #include <stdlib.h>
 #include "mcfutil.h"
 #include "helper.h"
-#include <immintrin.h>
-volatile int *pww;
+
 
 
 
 void atomic_increment(volatile int *pw) 
 {
-             asm("mfence\n\t" /*mfence±£Ö¤ÏµÍ³ÔÚºóÃæµÄmemory·ÃÎÊÖ®Ç°£¬ÏÈÇ°µÄmemory·ÃÎÊ¶¼ÒÑ½áÊø*/
-                 "lock\n\t" /*·âËø*/
-                 "incl %0\n\t" /*Êä³ö²Ù×÷ÊýÓÃ%0ÒýÓÃ;ÊäÈë²Ù×÷ÊýÓÃ%1ÒýÓÃ; %0++*/
+             asm("mfence\n\t" /*mfenceä¿è¯ç³»ç»Ÿåœ¨åŽé¢çš„memoryè®¿é—®ä¹‹å‰ï¼Œå…ˆå‰çš„memoryè®¿é—®éƒ½å·²ç»“æŸ*/
+                 "lock\n\t" /*å°é”*/
+                 "incl %0\n\t" /*è¾“å‡ºæ“ä½œæ•°ç”¨%0å¼•ç”¨;è¾“å…¥æ“ä½œæ•°ç”¨%1å¼•ç”¨; %0++*/
                  "mfence":
                  "=m"(*pw): // output (%0)
                  "m"(*pw): // input (%1)
@@ -24,11 +23,11 @@ void atomic_increment(volatile int *pw)
 
 void atomic_decrement(volatile int *pw)
 {
-             asm("mfence\n\t" /*mfence±£Ö¤ÏµÍ³ÔÚºóÃæµÄmemory·ÃÎÊÖ®Ç°£¬ÏÈÇ°µÄmemory·ÃÎÊ¶¼ÒÑ½áÊø*/
-                 "lock\n\t" /*·âËø*/
+             asm("mfence\n\t" /*mfenceä¿è¯ç³»ç»Ÿåœ¨åŽé¢çš„memoryè®¿é—®ä¹‹å‰ï¼Œå…ˆå‰çš„memoryè®¿é—®éƒ½å·²ç»“æŸ*/
+                 "lock\n\t" /*å°é”*/
                  "decl %0\n\t" /*%0--*/
                  "mfence":
-                 "=m"(*pw): // output (%0); Ô¼ÊøÐÞÊÎ·û "="£¬Ö¸¶¨ÆäÎªÊä³ö²Ù×÷Êý 
+                 "=m"(*pw): // output (%0); çº¦æŸä¿®é¥°ç¬¦ "="ï¼ŒæŒ‡å®šå…¶ä¸ºè¾“å‡ºæ“ä½œæ•° 
                  "m"(*pw): // input (%1)
                  "cc" // clobbers
                  );
@@ -54,71 +53,12 @@ int atomic_compare_and_exchange(int requiredOldValue, volatile int* _ptr, int ne
 
 void helper_thread_sync()
 {
-	int flag_sync;
-	int size_sync;
-	size_sync = sizeof(*pww);
-	flag_sync = atomic_compare_and_exchange(1, pww, 0, int sizeOfValue)
-    if(flag_sync == 1) {
-    	atomic_decrement(pww);
-	}
-    
-	return;
+	
 }
 
 void *helper_thread(void *x)
 {
-	//int *pww;
-	pww = 0;
-	int flag;
-	int size;
-	size = sizeof(*pww);
 	
-	node_t *roott;
-	roott = x;
-	node_t *nodee, *tmpp;
-	
-	roott->potential = (cost_t) -MAX_ART_COST;
-	tmpp = nodee = roott->child;
-	flag = atomic_compare_and_exchange(0, pww, 1, size);
-	
-	while( nodee != roott )
-    {
-	    	while(nodee)
-			{
-				_mm_prefetch(&nodee, 1);
-				
-	    		tmpp = nodee;
-	        	nodee = nodee->child;	
-	        	
-			}
-			//atomic_increment(pww);
-
-	
-		
-        nodee = tmpp;
-
-        while( nodee->pred )
-        {
-
-        		//atomic_increment(pww);
-        		tmpp = nodee->sibling;
-	            if( tmpp )
-	            {
-	                nodee = tmpp;
-	                break;
-	            }
-	            else
-	                nodee = nodee->pred;
-			
-            
-        }
-        
-        
-        
-        
-        
-    
-    }
     
 	return NULL;
 }
